@@ -4,7 +4,6 @@ using System.Text;
 
 namespace ZoomRecording.App_Code
 {
-    // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse); 
 
     public class RecordingFile
     {

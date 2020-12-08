@@ -27,7 +27,7 @@ namespace ZoomRecording.App_Code
             return string.Concat(filename.Split(Path.GetInvalidFileNameChars()));
         }
 
-        public static void Download(RecordingFile file, string folderpath, string token,string topic)
+        public static void Download(RecordingFile file, string folderpath, string token, string topic)
         {
             //File nameing pattern defined here.
             string filename = "GMT" + file.recording_start.ToString("yyyy-MM-dd-HHmmss") + "_" + topic + "." + file.file_type;
@@ -35,13 +35,15 @@ namespace ZoomRecording.App_Code
 
             //Do not re-download the file if run the utility again.
             if (File.Exists(Path.Join(folderpath, filename)))
+            {
                 return;
+            }
             //Download link need access token in the url to download the file.
             WebClient client = new WebClient();
             client.DownloadFile(file.download_url + "?access_token=" + token, Path.Join(folderpath, filename)); //  folderpath
         }
 
-        public static List<User> GetZoomUsers(string apikey,string apisecret)
+        public static List<User> GetZoomUsers(string apikey, string apisecret)
         {
             var connectionInfo = new JwtConnectionInfo(apikey, apisecret);
             var zoomClient = new ZoomClient(connectionInfo);
@@ -49,13 +51,16 @@ namespace ZoomRecording.App_Code
             List<User> userlist = new List<User>();
             int pagenumber = 1;
             // Iterate through all pages and load all users in the account. As Zoom provide maximum 300 users to be loaded in one api call.
-            while (true) {
+            while (true)
+            {
 
                 PaginatedResponse<User> paginateduserlist = zoomClient.Users.GetAllAsync(UserStatus.Active, null, 300, pagenumber).Result;
                 userlist.AddRange(paginateduserlist.Records);
 
-                if(paginateduserlist.PageCount == pagenumber)
+                if (paginateduserlist.PageCount == pagenumber)
+                {
                     break;
+                }
                 pagenumber++;
             }
 
@@ -65,9 +70,9 @@ namespace ZoomRecording.App_Code
         }
 
 
-        public static void SaveRecordings(string token,string email,DateTime startDate,DateTime endDate,string basepath,string trash_type)
+        public static void SaveRecordings(string token, string email, DateTime startDate, DateTime endDate, string basepath, string trash_type)
         {
-            string apiurl = string.Format("https://api.zoom.us/v2/users/{0}/recordings?trash_type={3}&mc=false&page_size=30&from={1}&to={2}",email, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"), trash_type);
+            string apiurl = string.Format("https://api.zoom.us/v2/users/{0}/recordings?trash_type={3}&mc=false&page_size=30&from={1}&to={2}", email, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"), trash_type);
             var client = new RestClient(apiurl);
             var request = new RestRequest(Method.GET);
             request.AddHeader("authorization", "Bearer " + token);
@@ -76,21 +81,25 @@ namespace ZoomRecording.App_Code
             Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(response.Content);
             if (myDeserializedClass.meetings != null && myDeserializedClass.meetings.Count > 0)
             {
-                foreach (App_Code.Meeting meeting in myDeserializedClass.meetings.Where(t=>t.recording_count > 0))
+                foreach (App_Code.Meeting meeting in myDeserializedClass.meetings.Where(t => t.recording_count > 0))
                 {
-                        string folderpath = System.IO.Path.Join(basepath, "Recording", email);
-                        if (!System.IO.Directory.Exists(folderpath))
-                            System.IO.Directory.CreateDirectory(folderpath);
-                        folderpath = System.IO.Path.Join(folderpath, meeting.id.ToString());
-                        if (!System.IO.Directory.Exists(folderpath))
-                            System.IO.Directory.CreateDirectory(folderpath);
+                    string folderpath = System.IO.Path.Join(basepath, "Recording", email);
+                    if (!System.IO.Directory.Exists(folderpath))
+                    {
+                        System.IO.Directory.CreateDirectory(folderpath);
+                    }
+                    folderpath = System.IO.Path.Join(folderpath, meeting.id.ToString());
+                    if (!System.IO.Directory.Exists(folderpath))
+                    {
+                        System.IO.Directory.CreateDirectory(folderpath);
+                    }
 
-                    File.WriteAllText(System.IO.Path.Join(folderpath,meeting.id + ".json"), Newtonsoft.Json.JsonConvert.SerializeObject(meeting));
+                    File.WriteAllText(System.IO.Path.Join(folderpath, meeting.id + ".json"), Newtonsoft.Json.JsonConvert.SerializeObject(meeting));
 
                     foreach (App_Code.RecordingFile file in meeting.recording_files)
-                        {
-                            Download(file, folderpath,token,meeting.topic);
-                        }
+                    {
+                        Download(file, folderpath, token, meeting.topic);
+                    }
                 }
             }
 

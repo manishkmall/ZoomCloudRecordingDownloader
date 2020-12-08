@@ -21,13 +21,13 @@ namespace ZoomRecording
 {
     class Program
     {
-        static void Main(string[] args)
+        protected static void Main(string[] args)
         {
 
             // Create JWT App and set the API Details below.
             // https://marketplace.zoom.us/docs/guides/build/jwt-app
-            string ApiKey = "APIKEY_HERE";
-            string ApiSecret = "API_SECREATE_HERE";
+            string ApiKey = "IJ4_K_M4TbKlmfXat4fWHg";
+            string ApiSecret = "5vJ4a1EjFmCYbJK3EiHu5uPH6MH2mVIeHB7v";
 
             //Load all users in the account.
             List<User> userlist = App_Code.ZoomUtil.GetZoomUsers(ApiKey, ApiSecret);
